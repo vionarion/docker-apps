@@ -24,12 +24,25 @@ flowchart LR
 - Every app lives in its own folder with `docker-compose.yml`, `.env.example` and a README
 - Secrets stay in `.env` on the server, never in git
 - `restart: unless-stopped`, healthchecks and memory limits for every service
+- Databases and caches live in a per-app `internal` network and are never published
+- Stateful apps have a backup sidecar ([docker-volume-backup](https://github.com/offen/docker-volume-backup)): nightly archive of the volumes to WebDAV storage with 7-day retention
 
 ## Apps
 
 | App | What it does | Folder |
 |---|---|---|
-| *coming soon* | | |
+| Traefik | Reverse proxy, Let's Encrypt certificates, HTTP → HTTPS | [apps/traefik](apps/traefik) |
+| Monitoring | Prometheus, Alertmanager → Telegram, Grafana, Loki + Promtail, node-exporter, cAdvisor | [apps/monitoring](apps/monitoring) |
+| Uptime Kuma | Status page and uptime checks | [apps/uptime-kuma](apps/uptime-kuma) |
+| Vaultwarden | Password manager (Bitwarden-compatible) with nightly backups | [apps/vaultwarden](apps/vaultwarden) |
+| n8n | Workflow automation | [apps/n8n](apps/n8n) |
+| Paperless-ngx | Document archive with OCR | [apps/paperless](apps/paperless) |
+| WordPress | WordPress + MySQL, tuned PHP, nightly backups | [apps/wordpress](apps/wordpress) |
+| Planka | Kanban board with nightly backups | [apps/planka](apps/planka) |
+| Vikunja | Task manager | [apps/vikunja](apps/vikunja) |
+| FreshRSS | RSS reader + RSS-Bridge | [apps/freshrss](apps/freshrss) |
+| Mealie | Recipes and meal planning | [apps/mealie](apps/mealie) |
+| Memos | Lightweight notes | [apps/memos](apps/memos) |
 
 ## Add a new app
 
@@ -46,4 +59,5 @@ docker compose up -d
 Every push runs GitHub Actions:
 
 - `docker compose config` for every compose file
+- `promtool`, `amtool` and `loki -verify-config` for the monitoring stack
 - [gitleaks](https://github.com/gitleaks/gitleaks) scan, so a password or token never lands in the repository

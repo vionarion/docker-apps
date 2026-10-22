@@ -5,3 +5,7 @@
 data/
 volumes/
 *.log
+letsencrypt/
+local-files/
+consume/
+telegram_token

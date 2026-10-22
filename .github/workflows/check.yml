@@ -14,10 +14,24 @@ jobs:
           docker network create proxy
           for f in $(find . -name 'docker-compose.yml' -o -name 'compose.yaml'); do
             dir=$(dirname "$f")
-            [ -f "$dir/.env.example" ] && cp "$dir/.env.example" "$dir/.env"
+            for ex in "$dir"/*.example "$dir"/.env.example; do
+              if [ -f "$ex" ]; then cp "$ex" "${ex%.example}"; fi
+            done
             echo "== $f"
             docker compose -f "$f" config -q
           done
+
+  monitoring-configs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: promtool, amtool and loki config checks
+        working-directory: apps/monitoring
+        run: |
+          docker run --rm -v "$PWD/prometheus:/p:ro" --entrypoint promtool prom/prometheus:v3.4.0 check config /p/prometheus.yml
+          echo -n dummy > alertmanager/telegram_token
+          docker run --rm -v "$PWD/alertmanager:/etc/alertmanager:ro" --entrypoint amtool prom/alertmanager:v0.28.1 check-config /etc/alertmanager/alertmanager.yml
+          docker run --rm -v "$PWD/loki/config.yaml:/etc/loki/config.yaml:ro" grafana/loki:3.5.0 -config.file=/etc/loki/config.yaml -verify-config
 
   secrets:
     runs-on: ubuntu-latest

@@ -1,0 +1,75 @@
+services:
+  freshrss:
+    image: freshrss/freshrss:1.27.1-alpine
+    container_name: freshrss
+    restart: unless-stopped
+    depends_on: [db]
+    environment:
+      TZ: ${TZ}
+      CRON_MIN: "*/15"
+    volumes:
+      - data:/var/www/FreshRSS/data
+      - extensions:/var/www/FreshRSS/extensions
+    networks: [proxy, internal]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.freshrss.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.freshrss.entrypoints=websecure
+      - traefik.http.routers.freshrss.tls.certresolver=letsencrypt
+      - traefik.http.services.freshrss.loadbalancer.server.port=80
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  # Makes RSS feeds for sites that don't have them
+  rss-bridge:
+    image: rssbridge/rss-bridge:latest
+    container_name: rss-bridge
+    restart: unless-stopped
+    volumes:
+      - bridge-cache:/cache
+    networks: [proxy]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.rss-bridge.rule=Host(`${BRIDGE_DOMAIN}`)
+      - traefik.http.routers.rss-bridge.entrypoints=websecure
+      - traefik.http.routers.rss-bridge.tls.certresolver=letsencrypt
+      - traefik.http.services.rss-bridge.loadbalancer.server.port=80
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+
+  db:
+    image: postgres:16-alpine
+    container_name: freshrss-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: freshrss
+      POSTGRES_USER: freshrss
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U freshrss -d freshrss"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+volumes:
+  data:
+  extensions:
+  bridge-cache:
+  pgdata:
+
+networks:
+  proxy:
+    external: true
+  internal:
