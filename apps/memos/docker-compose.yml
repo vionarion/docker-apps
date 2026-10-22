@@ -1,0 +1,26 @@
+services:
+  memos:
+    image: neosmemo/memos:stable
+    container_name: memos
+    restart: unless-stopped
+    volumes:
+      - memos-data:/var/opt/memos
+    networks: [proxy]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.memos.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.memos.entrypoints=websecure
+      - traefik.http.routers.memos.tls.certresolver=letsencrypt
+      - traefik.http.services.memos.loadbalancer.server.port=5230
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+
+volumes:
+  memos-data:
+
+networks:
+  proxy:
+    external: true

@@ -1,0 +1,32 @@
+services:
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:v3.5.0
+    container_name: mealie
+    restart: unless-stopped
+    environment:
+      ALLOW_SIGNUP: "false"
+      PUID: 1000
+      PGID: 1000
+      TZ: ${TZ}
+      BASE_URL: https://${APP_DOMAIN}
+    volumes:
+      - mealie-data:/app/data/
+    networks: [proxy]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.mealie.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.mealie.entrypoints=websecure
+      - traefik.http.routers.mealie.tls.certresolver=letsencrypt
+      - traefik.http.services.mealie.loadbalancer.server.port=9000
+    deploy:
+      resources:
+        limits:
+          memory: 1000m
+
+volumes:
+  mealie-data:
+
+networks:
+  proxy:
+    external: true
