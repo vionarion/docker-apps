@@ -1,0 +1,89 @@
+services:
+  planka:
+    image: ghcr.io/plankanban/planka:1.24.3
+    container_name: planka
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      BASE_URL: https://${APP_DOMAIN}
+      DATABASE_URL: postgresql://planka:${DB_PASSWORD}@db/planka
+      SECRET_KEY: ${SECRET_KEY}
+      TRUST_PROXY: 1
+      DEFAULT_ADMIN_EMAIL: ${ADMIN_EMAIL}
+      DEFAULT_ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      DEFAULT_ADMIN_NAME: Admin
+      DEFAULT_ADMIN_USERNAME: admin
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: 587
+      SMTP_USER: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM}
+    volumes:
+      - user-avatars:/app/public/user-avatars
+      - project-background-images:/app/public/project-background-images
+      - attachments:/app/private/attachments
+    networks: [proxy, internal]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.planka.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.planka.entrypoints=websecure
+      - traefik.http.routers.planka.tls.certresolver=letsencrypt
+      - traefik.http.services.planka.loadbalancer.server.port=1337
+      - docker-volume-backup.stop-during-backup=true
+    deploy:
+      resources:
+        limits:
+          memory: 384m
+
+  db:
+    image: postgres:16-alpine
+    container_name: planka-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: planka
+      POSTGRES_USER: planka
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [internal]
+    labels:
+      - docker-volume-backup.stop-during-backup=true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U planka -d planka"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  backup:
+    image: offen/docker-volume-backup:v2
+    container_name: planka-backup
+    restart: unless-stopped
+    env_file: ./backup.env
+    volumes:
+      - user-avatars:/backup/user-avatars:ro
+      - project-background-images:/backup/project-background-images:ro
+      - attachments:/backup/attachments:ro
+      - pgdata:/backup/pgdata:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+
+volumes:
+  user-avatars:
+  project-background-images:
+  attachments:
+  pgdata:
+
+networks:
+  proxy:
+    external: true
+  internal:
