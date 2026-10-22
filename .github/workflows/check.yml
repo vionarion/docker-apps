@@ -1,0 +1,30 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  compose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate every docker-compose file
+        run: |
+          docker network create proxy
+          for f in $(find . -name 'docker-compose.yml' -o -name 'compose.yaml'); do
+            dir=$(dirname "$f")
+            [ -f "$dir/.env.example" ] && cp "$dir/.env.example" "$dir/.env"
+            echo "== $f"
+            docker compose -f "$f" config -q
+          done
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,7 @@
+# Secrets and local data never go to the repository
+.env
+*.env
+!*.env.example
+data/
+volumes/
+*.log
