@@ -1,0 +1,34 @@
+# Helm values for the same runner on Kubernetes (I used it on k3s):
+#   helm repo add gitlab https://charts.gitlab.io
+#   kubectl create namespace gitlab-runner
+#   kubectl -n gitlab-runner create secret generic gitlab-runner-token \
+#     --from-literal=runner-registration-token="" --from-literal=runner-token=<glrt-...>
+#   helm upgrade --install gitlab-runner gitlab/gitlab-runner -n gitlab-runner -f values.yaml
+gitlabUrl: https://gitlab.com/
+concurrent: 2
+rbac:
+  create: true
+runners:
+  # The token lives in a Kubernetes Secret, never in this file
+  secret: gitlab-runner-token
+  name: k3s-gitlab-runner
+  config: |
+    [[runners]]
+      [runners.kubernetes]
+        namespace = "{{.Release.Namespace}}"
+        image = "alpine:3.22"
+        # Needed only for Docker-in-Docker builds; prefer kaniko/buildah and set false
+        privileged = true
+        cpu_request = "100m"
+        memory_request = "128Mi"
+        memory_limit = "1Gi"
+      [[runners.kubernetes.volumes.empty_dir]]
+        name = "docker-certs"
+        mount_path = "/certs/client"
+        medium = "Memory"
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 256Mi

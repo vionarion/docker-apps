@@ -25,7 +25,7 @@ flowchart LR
 - Secrets stay in `.env` on the server, never in git
 - `restart: unless-stopped`, healthchecks and memory limits for every service
 - Databases and caches live in a per-app `internal` network and are never published
-- Stateful apps have a backup sidecar ([docker-volume-backup](https://github.com/offen/docker-volume-backup)): nightly archive of the volumes to WebDAV storage with 7-day retention
+- Stateful apps have a backup sidecar ([docker-volume-backup](https://github.com/offen/docker-volume-backup)): nightly archive of the volumes to WebDAV storage with 7-day retention; it stops only the containers of its own app (per-app label value)
 
 ## Apps
 
@@ -43,6 +43,11 @@ flowchart LR
 | FreshRSS | RSS reader + RSS-Bridge | [apps/freshrss](apps/freshrss) |
 | Mealie | Recipes and meal planning | [apps/mealie](apps/mealie) |
 | Memos | Lightweight notes | [apps/memos](apps/memos) |
+| Actual Budget | Personal finance and budgeting, nightly backups | [apps/actual-budget](apps/actual-budget) |
+| Wekan | Kanban board on MongoDB, nightly backups | [apps/wekan](apps/wekan) |
+| Matrix | Synapse homeserver + PostgreSQL + Element web client, nightly backups | [apps/matrix](apps/matrix) |
+| MTProto proxy | Private Telegram proxy with Fake TLS (mtg) | [apps/mtproxy](apps/mtproxy) |
+| GitLab Runner | CI runner with the Docker executor, plus Helm values for Kubernetes | [apps/gitlab-runner](apps/gitlab-runner) |
 
 ## Add a new app
 

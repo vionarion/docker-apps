@@ -1,0 +1,87 @@
+services:
+  wekan:
+    image: wekanteam/wekan:v12.63
+    container_name: wekan
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ROOT_URL: https://${APP_DOMAIN}
+      PORT: 8080
+      MONGO_URL: mongodb://wekan:${DB_PASSWORD}@db:27017/wekan?authSource=admin
+      WRITABLE_PATH: /data
+      MAIL_URL: ${MAIL_URL}
+      MAIL_FROM: Wekan <${MAIL_FROM}>
+      WITH_API: "true"
+      BROWSER_POLICY_ENABLED: "true"
+      PASSWORD_LOGIN_ENABLED: "true"
+      NODE_OPTIONS: --max_old_space_size=512
+    volumes:
+      - wekan-files:/data
+    networks: [proxy, internal]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.wekan.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.wekan.entrypoints=websecure
+      - traefik.http.routers.wekan.tls.certresolver=letsencrypt
+      - traefik.http.services.wekan.loadbalancer.server.port=8080
+      - docker-volume-backup.stop-during-backup=wekan
+    healthcheck:
+      # The image has no curl/wget, so ask node itself
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:8080/', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+
+  db:
+    image: mongo:8.3
+    container_name: wekan-db
+    restart: unless-stopped
+    command: mongod --oplogSize 128 --quiet --wiredTigerCacheSizeGB 0.25
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: wekan
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mongo-data:/data/db
+    networks: [internal]
+    labels:
+      - docker-volume-backup.stop-during-backup=wekan
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  backup:
+    image: offen/docker-volume-backup:v2
+    container_name: wekan-backup
+    restart: unless-stopped
+    env_file: ./backup.env
+    volumes:
+      - wekan-files:/backup/wekan-files:ro
+      - mongo-data:/backup/mongo-data:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+
+volumes:
+  wekan-files:
+  mongo-data:
+
+networks:
+  proxy:
+    external: true
+  internal:
