@@ -1,0 +1,20 @@
+# Telegram MTProto proxy with Fake TLS (mtg v2). Not behind Traefik: it speaks its own protocol on a separate port.
+services:
+  mtg:
+    image: nineseconds/mtg:2.2.8
+    container_name: mtproxy
+    restart: unless-stopped
+    command: ["simple-run", "-n", "1.1.1.1", "-i", "only-ipv4", "0.0.0.0:3128", "${MTG_SECRET}"]
+    ports:
+      - "${MTG_PORT:-8443}:3128"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    deploy:
+      resources:
+        limits:
+          memory: 64m
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
