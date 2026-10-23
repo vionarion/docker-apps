@@ -47,7 +47,7 @@ services:
       - mysql-data:/var/lib/mysql
     networks: [internal]
     labels:
-      - docker-volume-backup.stop-during-backup=true
+      - docker-volume-backup.stop-during-backup=wordpress
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 30s

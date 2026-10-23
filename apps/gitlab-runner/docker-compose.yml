@@ -1,0 +1,39 @@
+# GitLab Runner with the Docker executor. Jobs run in sibling containers on this host.
+services:
+  runner:
+    image: gitlab/gitlab-runner:alpine-v19.5.0
+    container_name: gitlab-runner
+    restart: unless-stopped
+    volumes:
+      - ./config:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "gitlab-runner", "verify"]
+      interval: 5m
+      timeout: 30s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # One-shot registration: docker compose --profile register run --rm register
+  register:
+    image: gitlab/gitlab-runner:alpine-v19.5.0
+    profiles: [register]
+    volumes:
+      - ./config:/etc/gitlab-runner
+    command:
+      - register
+      - --non-interactive
+      - --url=${GITLAB_URL}
+      - --token=${RUNNER_TOKEN}
+      - --name=${RUNNER_NAME}
+      - --executor=docker
+      - --docker-image=alpine:3.22
+      - --docker-privileged=false
+      - --docker-volumes=/cache

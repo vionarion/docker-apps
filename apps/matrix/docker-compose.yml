@@ -1,0 +1,117 @@
+services:
+  # One-shot: renders homeserver.yaml from .env and creates the signing key, then exits.
+  synapse-init:
+    image: matrixdotorg/synapse:v1.163.2
+    container_name: synapse-init
+    entrypoint: ["python", "/config/render.py"]
+    environment:
+      MATRIX_DOMAIN: ${MATRIX_DOMAIN}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REGISTRATION_SECRET: ${REGISTRATION_SECRET}
+      MACAROON_SECRET: ${MACAROON_SECRET}
+      FORM_SECRET: ${FORM_SECRET}
+    volumes:
+      - ./synapse:/config:ro
+      - synapse-data:/data
+    network_mode: none
+    restart: "no"
+
+  synapse:
+    image: matrixdotorg/synapse:v1.163.2
+    container_name: synapse
+    restart: unless-stopped
+    depends_on:
+      synapse-init:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    environment:
+      SYNAPSE_CONFIG_PATH: /data/homeserver.yaml
+    volumes:
+      - ./synapse/log.config:/config/log.config:ro
+      - synapse-data:/data
+    networks: [proxy, internal]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.synapse.rule=Host(`${MATRIX_DOMAIN}`) && (PathPrefix(`/_matrix`) || PathPrefix(`/_synapse/client`) || PathPrefix(`/.well-known/matrix`))
+      - traefik.http.routers.synapse.entrypoints=websecure
+      - traefik.http.routers.synapse.tls.certresolver=letsencrypt
+      - traefik.http.services.synapse.loadbalancer.server.port=8008
+      - docker-volume-backup.stop-during-backup=matrix
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8008/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+
+  db:
+    image: postgres:16-alpine
+    container_name: synapse-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: synapse
+      POSTGRES_USER: synapse
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # Synapse requires C collation
+      POSTGRES_INITDB_ARGS: --encoding=UTF8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [internal]
+    labels:
+      - docker-volume-backup.stop-during-backup=matrix
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U synapse -d synapse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  element:
+    image: vectorim/element-web:v1.12.32
+    container_name: element
+    restart: unless-stopped
+    volumes:
+      - ./element/config.json:/app/config.json:ro
+    networks: [proxy]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.element.rule=Host(`${ELEMENT_DOMAIN}`)
+      - traefik.http.routers.element.entrypoints=websecure
+      - traefik.http.routers.element.tls.certresolver=letsencrypt
+      - traefik.http.services.element.loadbalancer.server.port=80
+    deploy:
+      resources:
+        limits:
+          memory: 64m
+
+  backup:
+    image: offen/docker-volume-backup:v2
+    container_name: matrix-backup
+    restart: unless-stopped
+    env_file: ./backup.env
+    volumes:
+      - synapse-data:/backup/synapse-data:ro
+      - pgdata:/backup/pgdata:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+
+volumes:
+  synapse-data:
+  pgdata:
+
+networks:
+  proxy:
+    external: true
+  internal:

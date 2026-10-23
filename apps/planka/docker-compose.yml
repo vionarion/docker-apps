@@ -32,7 +32,7 @@ services:
       - traefik.http.routers.planka.entrypoints=websecure
       - traefik.http.routers.planka.tls.certresolver=letsencrypt
       - traefik.http.services.planka.loadbalancer.server.port=1337
-      - docker-volume-backup.stop-during-backup=true
+      - docker-volume-backup.stop-during-backup=planka
     deploy:
       resources:
         limits:
@@ -50,7 +50,7 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks: [internal]
     labels:
-      - docker-volume-backup.stop-during-backup=true
+      - docker-volume-backup.stop-during-backup=planka
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U planka -d planka"]
       interval: 10s
