@@ -1,0 +1,41 @@
+# Rendered into the synapse-data volume by the "synapse-init" service; ${VARS} come from .env.
+server_name: "${MATRIX_DOMAIN}"
+public_baseurl: "https://${MATRIX_DOMAIN}/"
+pid_file: /data/homeserver.pid
+signing_key_path: /data/signing.key
+media_store_path: /data/media_store
+report_stats: false
+serve_server_wellknown: true
+
+listeners:
+  - port: 8008
+    type: http
+    tls: false
+    x_forwarded: true
+    bind_addresses: ["0.0.0.0"]
+    resources:
+      - names: [client, federation]
+        compress: false
+
+database:
+  name: psycopg2
+  args:
+    user: synapse
+    password: "${DB_PASSWORD}"
+    dbname: synapse
+    host: db
+    cp_min: 5
+    cp_max: 10
+
+log_config: /config/log.config
+
+# Accounts are created by the admin (register_new_matrix_user), not by open sign-up.
+enable_registration: false
+registration_shared_secret: "${REGISTRATION_SECRET}"
+macaroon_secret_key: "${MACAROON_SECRET}"
+form_secret: "${FORM_SECRET}"
+
+max_upload_size: 50M
+url_preview_enabled: false
+trusted_key_servers:
+  - server_name: "matrix.org"

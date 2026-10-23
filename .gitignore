@@ -9,3 +9,5 @@ letsencrypt/
 local-files/
 consume/
 telegram_token
+apps/matrix/element/config.json
+apps/gitlab-runner/config/
