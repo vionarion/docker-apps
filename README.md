@@ -44,6 +44,7 @@ flowchart LR
 | Mealie | Recipes and meal planning | [apps/mealie](apps/mealie) |
 | Memos | Lightweight notes | [apps/memos](apps/memos) |
 | RustFS | S3-compatible storage for Terraform state (native lock file) | [apps/rustfs](apps/rustfs) |
+| PostgreSQL | Shared database for apps that need real SQL instead of SQLite (e.g. a leads bot), nightly backups | [apps/postgresql](apps/postgresql) |
 | Actual Budget | Personal finance and budgeting, nightly backups | [apps/actual-budget](apps/actual-budget) |
 | Wekan | Kanban board on MongoDB, nightly backups | [apps/wekan](apps/wekan) |
 | Matrix | Synapse homeserver + PostgreSQL + Element web client, nightly backups | [apps/matrix](apps/matrix) |
