@@ -1,0 +1,49 @@
+services:
+  rustfs:
+    image: rustfs/rustfs:1.0.3
+    container_name: rustfs
+    restart: unless-stopped
+    environment:
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_REGION: ${S3_REGION}
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${S3_SECRET_KEY}
+      RUSTFS_CONSOLE_ENABLE: ${CONSOLE_ENABLE}
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+    volumes:
+      - rustfs-data:/data
+    networks: [proxy]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      # S3 API, path-style: https://${APP_DOMAIN}/<bucket>/<key>
+      - traefik.http.routers.rustfs-s3.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.rustfs-s3.entrypoints=websecure
+      - traefik.http.routers.rustfs-s3.tls.certresolver=letsencrypt
+      - traefik.http.routers.rustfs-s3.service=rustfs-s3
+      - traefik.http.services.rustfs-s3.loadbalancer.server.port=9000
+      # Web console, only from the admin addresses
+      - traefik.http.routers.rustfs-console.rule=Host(`${CONSOLE_DOMAIN}`)
+      - traefik.http.routers.rustfs-console.entrypoints=websecure
+      - traefik.http.routers.rustfs-console.tls.certresolver=letsencrypt
+      - traefik.http.routers.rustfs-console.service=rustfs-console
+      - traefik.http.routers.rustfs-console.middlewares=rustfs-console-ip
+      - traefik.http.middlewares.rustfs-console-ip.ipallowlist.sourcerange=${CONSOLE_ALLOWED_IPS}
+      - traefik.http.services.rustfs-console.loadbalancer.server.port=9001
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:9000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+volumes:
+  rustfs-data:
+
+networks:
+  proxy:
+    external: true
