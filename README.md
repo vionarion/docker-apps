@@ -1,3 +1,5 @@
+![docker-apps](assets/banner.svg)
+
 # docker-apps
 
 Self-hosted services I run on my VPS: each app is a small Docker Compose project behind a single **Traefik** reverse proxy with automatic HTTPS.
