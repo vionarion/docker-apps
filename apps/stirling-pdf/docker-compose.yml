@@ -1,6 +1,6 @@
 services:
   stirling-pdf:
-    image: stirlingtools/stirling-pdf:3.2.2
+    image: stirlingtools/stirling-pdf:3.2.2${EDITION:-}
     container_name: stirling-pdf
     restart: unless-stopped
     environment:
@@ -37,7 +37,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1536m
+          memory: ${MEMORY_LIMIT:-1536m}
 
 volumes:
   stirling-tessdata:

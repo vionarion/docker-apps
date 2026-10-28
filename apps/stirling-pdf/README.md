@@ -14,7 +14,7 @@ Open `https://<APP_DOMAIN>` and log in with `ADMIN_USER` / `ADMIN_PASSWORD`.
 ## Notes
 
 - Login is on (`SECURITY_ENABLELOGIN`): documents are often personal, so the instance is not public
-- Java + LibreOffice + Tesseract: the first start takes about a minute, memory limit 1.5 GB
+- Java + LibreOffice + Tesseract: the first start takes about a minute, memory limit 1.5 GB (`MEMORY_LIMIT`)
 - Settings and users live in the `stirling-config` volume, OCR language data in `stirling-tessdata`
 - Uploads up to 100 MB (`SYSTEM_MAXFILESIZE` plus the Traefik buffering middleware)
-- Variants of the image: `-ultra-lite` (no LibreOffice/OCR, ~300 MB RAM) and `-fat` (extra fonts, offline)
+- Edition is chosen in `.env` (`EDITION`): full (default), `-ultra-lite` (no LibreOffice/OCR, ~300 MB RAM, set `MEMORY_LIMIT=512m`) or `-fat` (extra fonts, offline)
