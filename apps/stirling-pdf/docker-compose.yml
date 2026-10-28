@@ -1,0 +1,49 @@
+services:
+  stirling-pdf:
+    image: stirlingtools/stirling-pdf:3.2.2
+    container_name: stirling-pdf
+    restart: unless-stopped
+    environment:
+      SECURITY_ENABLELOGIN: "true"
+      SECURITY_INITIALLOGIN_USERNAME: ${ADMIN_USER}
+      SECURITY_INITIALLOGIN_PASSWORD: ${ADMIN_PASSWORD}
+      SYSTEM_DEFAULTLOCALE: ${LOCALE:-ru-RU}
+      SYSTEM_MAXFILESIZE: "100"
+      SYSTEM_GOOGLEVISIBILITY: "false"
+      METRICS_ENABLED: "false"
+      SHOW_SURVEY: "false"
+      LANGS: ${OCR_LANGS:-rus,eng}
+    volumes:
+      - stirling-tessdata:/usr/share/tessdata
+      - stirling-config:/configs
+      - stirling-logs:/logs
+    networks: [proxy]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.stirling-pdf.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.stirling-pdf.entrypoints=websecure
+      - traefik.http.routers.stirling-pdf.tls.certresolver=letsencrypt
+      - traefik.http.services.stirling-pdf.loadbalancer.server.port=8080
+      # uploads up to 100 MB
+      - traefik.http.middlewares.stirling-pdf-body.buffering.maxRequestBodyBytes=104857600
+      - traefik.http.routers.stirling-pdf.middlewares=stirling-pdf-body
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8080/api/v1/info/status | grep -q UP"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          memory: 1536m
+
+volumes:
+  stirling-tessdata:
+  stirling-config:
+  stirling-logs:
+
+networks:
+  proxy:
+    external: true

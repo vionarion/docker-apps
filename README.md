@@ -52,6 +52,7 @@ flowchart LR
 | Matrix | Synapse homeserver + PostgreSQL + Element web client, nightly backups | [apps/matrix](apps/matrix) |
 | MTProto proxy | Private Telegram proxy with Fake TLS (mtg) | [apps/mtproxy](apps/mtproxy) |
 | GitLab Runner | CI runner with the Docker executor, plus Helm values for Kubernetes | [apps/gitlab-runner](apps/gitlab-runner) |
+| Stirling-PDF | PDF toolbox in the browser: crop, merge, OCR, convert, real redaction | [apps/stirling-pdf](apps/stirling-pdf) |
 
 ## Add a new app
 
