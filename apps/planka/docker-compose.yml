@@ -1,6 +1,6 @@
 services:
   planka:
-    image: ghcr.io/plankanban/planka:1.26.3
+    image: ghcr.io/plankanban/planka:2.2.1
     container_name: planka
     restart: unless-stopped
     depends_on:
@@ -21,9 +21,7 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       SMTP_FROM: ${SMTP_FROM}
     volumes:
-      - user-avatars:/app/public/user-avatars
-      - project-background-images:/app/public/project-background-images
-      - attachments:/app/private/attachments
+      - data:/app/data
     networks: [proxy, internal]
     labels:
       - traefik.enable=true
@@ -67,9 +65,7 @@ services:
     restart: unless-stopped
     env_file: ./backup.env
     volumes:
-      - user-avatars:/backup/user-avatars:ro
-      - project-background-images:/backup/project-background-images:ro
-      - attachments:/backup/attachments:ro
+      - data:/backup/data:ro
       - pgdata:/backup/pgdata:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     deploy:
@@ -78,9 +74,7 @@ services:
           memory: 128m
 
 volumes:
-  user-avatars:
-  project-background-images:
-  attachments:
+  data:
   pgdata:
 
 networks:

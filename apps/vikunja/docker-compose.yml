@@ -1,6 +1,6 @@
 services:
   vikunja:
-    image: vikunja/vikunja:latest
+    image: vikunja/vikunja:2.7.1
     container_name: vikunja
     restart: unless-stopped
     depends_on:

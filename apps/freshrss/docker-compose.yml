@@ -25,7 +25,7 @@ services:
 
   # Makes RSS feeds for sites that don't have them
   rss-bridge:
-    image: rssbridge/rss-bridge:latest
+    image: rssbridge/rss-bridge:2026-09-30
     container_name: rss-bridge
     restart: unless-stopped
     volumes:
