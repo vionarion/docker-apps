@@ -53,6 +53,7 @@ flowchart LR
 | MTProto proxy | Private Telegram proxy with Fake TLS (mtg) | [apps/mtproxy](apps/mtproxy) |
 | GitLab Runner | CI runner with the Docker executor, plus Helm values for Kubernetes | [apps/gitlab-runner](apps/gitlab-runner) |
 | Stirling-PDF | PDF toolbox in the browser: crop, merge, OCR, convert, real redaction | [apps/stirling-pdf](apps/stirling-pdf) |
+| MobSF | Security scan of Android/iOS apps (APK, IPA), plus a script to scan every app on a phone over adb; for a laptop | [apps/mobsf](apps/mobsf) |
 
 ## Add a new app
 

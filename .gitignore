@@ -11,3 +11,7 @@ consume/
 telegram_token
 apps/matrix/element/config.json
 apps/gitlab-runner/config/
+
+# MobSF: pulled APKs and scan results
+apps/mobsf/apks/
+apps/mobsf/results-*.tsv

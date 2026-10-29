@@ -1,0 +1,37 @@
+# MobSF: static security analysis of Android/iOS apps (APK, AAB, IPA).
+# Meant for a laptop: listens on 127.0.0.1 only, no Traefik, SQLite in the data volume.
+services:
+  mobsf-init:
+    # the image runs as uid 9901, a fresh named volume is owned by root
+    image: busybox:1.37
+    command: chown -R 9901:9901 /data
+    volumes:
+      - mobsf-data:/data
+
+  mobsf:
+    image: opensecurity/mobile-security-framework-mobsf:v4.6.2
+    container_name: mobsf
+    restart: unless-stopped
+    environment:
+      DJANGO_SUPERUSER_PASSWORD: ${MOBSF_PASSWORD:?set MOBSF_PASSWORD in .env}
+      MOBSF_API_KEY: ${MOBSF_API_KEY:?set MOBSF_API_KEY in .env}
+    volumes:
+      - mobsf-data:/home/mobsf/.MobSF
+    ports:
+      - 127.0.0.1:${MOBSF_PORT:-8000}:8000
+    depends_on:
+      mobsf-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:8000/login/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+
+volumes:
+  mobsf-data:
