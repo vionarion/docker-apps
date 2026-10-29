@@ -40,7 +40,7 @@ services:
           memory: 256m
 
   db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: vikunja-db
     restart: unless-stopped
     environment:
@@ -48,7 +48,7 @@ services:
       POSTGRES_USER: vikunja
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     networks: [internal]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U vikunja -d vikunja"]

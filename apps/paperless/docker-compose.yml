@@ -32,7 +32,7 @@ services:
           memory: 1g
 
   db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: paperless-db
     restart: unless-stopped
     environment:
@@ -40,7 +40,7 @@ services:
       POSTGRES_USER: paperless
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     networks: [internal]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U paperless -d paperless"]
@@ -53,7 +53,7 @@ services:
           memory: 256m
 
   broker:
-    image: redis:7-alpine
+    image: redis:8-alpine
     container_name: paperless-redis
     restart: unless-stopped
     networks: [internal]

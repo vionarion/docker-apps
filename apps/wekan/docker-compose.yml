@@ -41,7 +41,7 @@ services:
           memory: 768m
 
   db:
-    image: mongo:8.3
+    image: mongo:9.0
     container_name: wekan-db
     restart: unless-stopped
     command: mongod --oplogSize 128 --quiet --wiredTigerCacheSizeGB 0.25

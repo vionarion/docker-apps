@@ -65,6 +65,21 @@ cp .env.example .env   # fill in real values on the server
 docker compose up -d
 ```
 
+## Upgrading databases
+
+The images are pinned, so an upgrade is a deliberate change of the tag. For a new major version of a
+database, changing the tag on a running install is not enough:
+
+- **PostgreSQL 16 → 18**: the data format changed and the image now keeps data under
+  `/var/lib/postgresql/18/docker` (the volume is mounted at `/var/lib/postgresql`). Dump with
+  `pg_dumpall` on the old version, start 18 on an empty volume, restore the dump.
+- **MongoDB 8 → 9**: back up with `mongodump`, then restore the dump into a fresh 9.0 volume.
+- **Redis 7 → 8**: reads the existing data files, a backup before the switch is enough.
+- **MySQL**: pinned to the LTS line (9.7). Moving between lines goes through `mysqldump` and a
+  restore into a fresh volume.
+
+Always take a backup first; there is no way back to the old version without one.
+
 ## Checks
 
 Every push runs GitHub Actions:
