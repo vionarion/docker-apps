@@ -2,7 +2,7 @@
 # Only Grafana is published (through Traefik); everything else stays in the internal network.
 services:
   prometheus:
-    image: prom/prometheus:v3.4.0
+    image: prom/prometheus:v3.15.1
     container_name: prometheus
     restart: unless-stopped
     command:
@@ -20,7 +20,7 @@ services:
           memory: 512m
 
   alertmanager:
-    image: prom/alertmanager:v0.28.1
+    image: prom/alertmanager:v0.34.2
     container_name: alertmanager
     restart: unless-stopped
     command:
@@ -35,7 +35,7 @@ services:
           memory: 64m
 
   node-exporter:
-    image: prom/node-exporter:v1.9.1
+    image: prom/node-exporter:v1.12.1
     container_name: node-exporter
     restart: unless-stopped
     pid: host
@@ -55,7 +55,7 @@ services:
           memory: 64m
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    image: gcr.io/cadvisor/cadvisor:v0.55.1
     container_name: cadvisor
     restart: unless-stopped
     privileged: true
@@ -73,7 +73,7 @@ services:
           memory: 256m
 
   loki:
-    image: grafana/loki:3.5.0
+    image: grafana/loki:3.7.9
     container_name: loki
     restart: unless-stopped
     command: -config.file=/etc/loki/config.yaml
@@ -87,7 +87,7 @@ services:
           memory: 512m
 
   promtail:
-    image: grafana/promtail:3.5.0
+    image: grafana/promtail:3.6.11
     container_name: promtail
     restart: unless-stopped
     command: -config.file=/etc/promtail/config.yaml
@@ -104,7 +104,7 @@ services:
           memory: 128m
 
   grafana:
-    image: grafana/grafana:12.0.0
+    image: grafana/grafana:12.4.14
     container_name: grafana
     restart: unless-stopped
     environment:

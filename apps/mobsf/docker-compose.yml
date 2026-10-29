@@ -3,7 +3,7 @@
 services:
   mobsf-init:
     # the image runs as uid 9901, a fresh named volume is owned by root
-    image: busybox:1.37
+    image: busybox:1.38
     command: chown -R 9901:9901 /data
     volumes:
       - mobsf-data:/data

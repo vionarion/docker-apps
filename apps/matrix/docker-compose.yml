@@ -1,7 +1,7 @@
 services:
   # One-shot: renders homeserver.yaml from .env and creates the signing key, then exits.
   synapse-init:
-    image: matrixdotorg/synapse:v1.163.2
+    image: matrixdotorg/synapse:v1.164.1
     container_name: synapse-init
     entrypoint: ["python", "/config/render.py"]
     environment:
@@ -17,7 +17,7 @@ services:
     restart: "no"
 
   synapse:
-    image: matrixdotorg/synapse:v1.163.2
+    image: matrixdotorg/synapse:v1.164.1
     container_name: synapse
     restart: unless-stopped
     depends_on:
@@ -76,7 +76,7 @@ services:
           memory: 256m
 
   element:
-    image: vectorim/element-web:v1.12.32
+    image: vectorim/element-web:v1.12.33
     container_name: element
     restart: unless-stopped
     volumes:

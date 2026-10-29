@@ -1,6 +1,6 @@
 services:
   planka:
-    image: ghcr.io/plankanban/planka:1.24.3
+    image: ghcr.io/plankanban/planka:1.26.3
     container_name: planka
     restart: unless-stopped
     depends_on:

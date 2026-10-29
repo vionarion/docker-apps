@@ -1,6 +1,6 @@
 services:
   wordpress:
-    image: wordpress:6.8.3-php8.3-apache
+    image: wordpress:7.1.4-php8.3-apache
     container_name: wordpress
     restart: unless-stopped
     depends_on:
@@ -34,7 +34,7 @@ services:
           memory: 512m
 
   db:
-    image: mysql:9.2.0
+    image: mysql:9.7.4
     container_name: wordpress-db
     restart: unless-stopped
     environment:
